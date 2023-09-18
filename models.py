@@ -5,14 +5,25 @@ db = SQLAlchemy()
 
 bcrypt = Bcrypt()
 
-def connect_db(app):
-    """Connect to database"""
+class Feedback (db.Model):
+    """Shows User feedback"""
 
-    db.app = app
-    db.init_app(app)
+    __tablename__ = "feedback"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(100), nullable = False)
+    content = db.Column(db.Text, nullable = False)
+    username = db.Column(db.String(20), db.ForeignKey('users.username'), nullable=False) 
+
+    user = db.relationship('User', backref='feedbacks')
+
+
+
+
+
 
 class User(db.Model):
-    """show users and passwords""""
+    """show users and passwords"""
 
     __tablename__ = "users"
 
@@ -30,13 +41,13 @@ class User(db.Model):
 
 
     @classmethod 
-    def register(cls, username, pwd):
+    def register(cls, username, pwd, email, first_name, last_name):
         """Regester User with hashed password and return"""
 
         hashed = bcrypt.generate_password_hash(pwd)
         hashed_utf8 = hashed.decode("utf8")
 
-        return cls(username = username, password = hashed_utf8)
+        return cls(username=username, password=hashed_utf8, email=email, first_name=first_name, last_name=last_name)
 
     
     @classmethod
@@ -49,3 +60,8 @@ class User(db.Model):
             return u
         else: 
             return False
+
+def connect_db(app):
+    db.app = app
+    with app.app_context():
+        db.create_all()
